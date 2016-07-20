@@ -1,0 +1,63 @@
+#####################  European Call
+# number of paths factor
+n <- 4
+# duration of option
+T <- 90
+# volatility of stock
+sigma <- 0.2
+# risk free rate
+r <- 0.05
+dt <- 1/360
+# estiamtes of price
+PriceEC <- numeric(n)
+# se of estimates
+seEC <- numeric(n)
+
+for(i in 1:n){
+  # number of paths
+  N <- 10^(i+2)
+  # storing the payoff of paths generated
+  payoffEC <- numeric(N)
+  for(j in 1:N){
+    # initial price
+    X <- 20
+    dW <- rnorm(T)
+    for(t in 1:(T-1)){
+      X <- X + r*X*dt + sigma*X*dW[t]*sqrt(dt)
+    }
+    payoffEC[j] <- max(X - 20, 0)
+    if(j %% 100 == 0){print(j)}
+  }
+  PriceEC[i] <- mean(payoffEC*exp(-r*T*dt))
+  seEC[i] <- sd(payoffEC)/sqrt(N)
+}
+
+#####################  European Put
+# estiamtes of price
+PriceEP <- numeric(n)
+# se of estimates
+seEP <- numeric(n)
+
+for(i in 1:n){
+  # number of paths
+  N <- 10^(i + 2)
+  # storing the payoff of paths generated
+  payoffEP <- numeric(N)
+  for(j in 1:N){
+    #X <- numeric(T)
+    # initial price
+    X <- 20
+    dW <- rnorm(T)
+    for(t in 1:(T-1)){
+      X <- X + r*X*dt + sigma*X*dW[t]*sqrt(dt)
+    }
+    payoffEP[j] <- max(20 - X, 0)
+    if(j %% 100 == 0){print(j)}
+  }
+  PriceEP[i] <- mean(payoffEP*exp(-r*T*dt))
+  seEP[i] <- sd(payoffEP)/sqrt(N)
+}
+# summarizing the result
+size <- c("$10^3$", "$10^4$", "$10^5$", "$10^6$")
+Euro <- cbind(size, round(PriceEC,6), round(seEC,6), round(PriceEP,6), round(seEP,6))
+colnames(Euro) <- c("N", "Call Prce", "Std Error", "Put Price", "Std Error")
