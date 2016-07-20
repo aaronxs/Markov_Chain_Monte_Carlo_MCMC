@@ -1,0 +1,63 @@
+# Gibbs Sampler
+# defining prior parameters
+library(MCMCpack)
+P9a = 100
+K <- 6
+J <- 5
+# loading samples
+Y = t( matrix(
+  c(1545, 1440, 1440, 1520, 1580,
+    1540, 1555, 1490, 1560, 1495,
+    1595, 1550, 1605, 1510, 1560,
+    1445, 1440, 1595, 1465, 1545,
+    1595, 1630, 1515, 1635, 1625,
+    1520, 1455, 1450, 1480, 1445), nrow=5))
+# mean fn for mu
+mean_mu <- function(V, theta){(100*V +600*mean(theta))/(V + 600)}
+# sd fn for mu
+sd_mu <- function(V){sqrt(100*V/(V + 600))}
+# mean fn for theta k
+mean_th <- function(mu, V, W, k){(mu*W + 5*mean(Y[k,])*V)/(W = 5*V)}
+# sd fn for theta k
+sd_th <- function(V, W){sqrt(V*W/(W + 5*V))}
+# scale fn for V
+scale_V <- function(mu, theta){100 + 0.5*sum((theta-mu)^2)}
+# scale fn for W
+scale_W <- function(theta){100 + 0.5*sum((Y[1:6] - theta[1:6])^2)}
+
+# varfact function
+vf <- function(x) { 2 * sum(acf(x, plot=FALSE)$acf) - 1 }
+# nubmer of iterations 
+M9 <- 110000
+# burn ins
+B9 <- 10000
+# number of runs
+n9 <- 200
+# keep track of the estimates
+acceptcount9c <- numeric(n9)
+Ilist9c <- numeric(n9)
+# list of parameters
+
+for(i in 1:n9){
+  # keep track of and h(x)
+  hlist9c <- numeric(M9)
+  # intial value of mu,V, W and thetas
+  mu <- rnorm(1, mean=P9a, sd=P9a)
+  V <- runif(1,min=0, max=20)
+  W <- runif(1,min=0, max=20)
+  theta <- rnorm(6, mean=mu, sd=sqrt(V))
+  for(j in 1:M9){
+    # randomly select a coordinate
+    coord = floor( runif(1,1,4))
+    # update the coordinate
+    if(coord == 1){mu <- rnorm(1, mean=mean_mu(V, theta), sd=sd_mu(V))}
+    else if(coord == 2){V <- rinvgamma(1, shape=103, scale=scale_V(mu, theta))}
+    else if(coord == 3){W <- rinvgamma(1, shape=115, scale=scale_W(theta))}
+    else
+      coord = coord - 3
+      theta[coord] <- rnorm(1, mean=mean_th(mu, V, W, coord), sd=sd_th(V, W))
+      hlist9c[j] = V/W
+  }
+  Ilist9c[i] <- mean(hlist9c[(B9+1):M9])
+  print(i)
+}
