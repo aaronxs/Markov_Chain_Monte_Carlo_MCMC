@@ -1,0 +1,78 @@
+########### Metropolis-Hastings Langevin Algorithm
+# function phi
+phi <- function(x){exp(-abs(x)/10)}
+
+# function psi
+psi <- function(x){1 + cos(x)*sin(x^3)}
+
+# function g
+gn8 <- function(x){phi(x)*psi(x)}
+
+# function g'
+gn8Prime <- function(x){
+  if(x !=0){
+    -(x/(10*abs(x)))*gn8(x) + phi(x)*(3*x^(2)*cos(x)*cos(x^3) - sin(x)*sin(x^3))
+  }
+  else
+    0
+}
+# function q
+q8b <- function(x, y, sigma){
+  MU <- (x + (1/2)*(sigma^2)*gn8Prime(x)/gn8(x))
+  exp(-((y - MU)^2)/(2*sigma^2))
+}
+
+# function h
+hn8 <- function(x){x + x^2}
+# number of iterations
+M8 <- 110000
+# number of burn-in
+B8 <- 10000
+# number of indep runs
+n8 <- 200
+# scaling factor
+sigma <- 0.15
+
+# count numer of accepted proposal
+acceptcount8b <- numeric(n8)
+# storing estimates frome each run
+Ilist8b <- numeric(n8)
+
+for(j in 1:n8){
+  # a list to store the h values
+  hlist8b <- numeric(M8)
+  # initial value X0
+  X <- runif(1, min=-10, max=10)
+  for(i in 1:M8){
+    U <- runif(1, min=0, max=1)
+    Y <- rnorm(1, mean=X + (1/2)*(sigma^2)*gn8Prime(X)/gn8(X), sd=sigma)
+    ratio <- ( gn8(Y) * q8b(Y, X, sigma) )/( gn8(X) * q8b(X, Y, sigma) )
+    if(U <= ratio){
+      X = Y
+      hlist8b[i] = hn8(X)
+      acceptcount8b[j] = acceptcount8b[j] + 1
+    }
+    else
+      hlist8b[i] = hn8(X)
+  }
+  Ilist8b[j] <- mean(hlist8b[(B8+1):M8])
+  print(j)
+}
+
+print(Ilist8b)
+print(acceptcount8b/M8)
+
+cat("ran Metropolis algorithm for", M8b, "iterations, with burn-in", B8b, "\n");
+cat("acceptance rate =", acceptcount8b/M8b, "\n");
+I8b <- mean(hlist8b[(B8b+1):M8b]) # estimate of I
+cat("mean of h is about", I8b, "\n")
+ 
+se_iid8b =  sd(hlist8b[(B8b+1):M8b]) / sqrt(M8b-B8b)
+cat("iid standard error would be about", se_iid8b, "\n")
+ 
+vf_fn8b <- function(x) { 2 * sum(acf(x, plot=FALSE)$acf) - 1 }
+vf8b = vf_fn8b(hlist8b[(B8b+1):M8b])
+se8b = se_iid8b * sqrt(vf8b)
+cat("true standard error is about", se8b, "\n")
+cat("approximate 95% confidence interval is (", I8b - 1.96 * se8b, ",",
+     I8b + 1.96 * se8b, ")\n\n")
