@@ -1,0 +1,67 @@
+### Metropolis Algorithm
+A <- 4; B <- 1; C <- 1; D <- 9
+# function g
+gn6 <- function (x){
+  (x[1] + A + 2)^(x[2] +3)*(1 + cos((B+3)*x[3]))*(exp((12-C)*x[4]))*abs(x[4] - 3*x[5])^(D+2)
+}
+# function h
+hn6 <- function(x){
+  (x[1] - x[2])/(1 + x[3] + x[4]*x[5])
+}
+# varfact function
+vf <- function(x) { 2 * sum(acf(x, plot=FALSE)$acf) - 1 }
+
+# number of iterations
+M6 <- 1100000
+# numer of indep. runs
+n6 <- 1
+# number of burn ins
+B6 <- 100000
+# counting number of accepted proposal
+acceptcount6 = numeric(n6)
+# storing the estimates
+Ilist6 <- numeric(n6)
+iid6 <- numeric((n6))
+se6 <- numeric(n6)
+
+for(i in 1:n6){
+  # initial value
+  X <- runif(5, min=0, max=2)
+  hlist6 = numeric(M6)
+  # generating values from uniform(0, 2) 
+  y1list6 <- runif(M6, min=0, max=2)
+  y2list6 <- runif(M6, min=0, max=2)
+  y3list6 <- runif(M6, min=0, max=2)
+  y4list6 <- runif(M6, min=0, max=2)
+  y5list6 <- runif(M6, min=0, max=2)
+  ulist6 <- runif(M6, min=0, max=1)
+  for(j in 1:M6){
+    U <- ulist6[j]
+    Y <- c(y1list6[j], y2list6[j], y3list6[j], y4list6[j], y5list6[j])
+    ratio <- gn6(Y)/gn6(X)
+    if(U <= ratio){
+      X = Y
+      acceptcount6[i] = acceptcount6[i] + 1
+    }
+    hlist6[j] = hn6(X)
+  }
+  Ilist6[i] <- mean(hlist6[(B6+1):M6])
+  iid6[i] <-  sd(hlist6[(B6+1):M6])/sqrt(M6-B6)
+  se6[i] <- iid6[i]*sqrt(vf(hlist6[(B6+1):M6]))
+  print(i)
+}
+
+cat("ran Metropolis algorithm for", M6, "iterations, with burn-in", B6, "\n");
+cat("acceptance rate =", acceptcount6/M6, "\n");
+I6 <- mean(hlist6[(B6+1):M6]) # estimate of I
+cat("mean of h is about", I6, "\n")
+
+se_iid6 =  sd(hlist6[(B6+1):M6]) / sqrt(M6-B6)
+cat("iid standard error would be about", se_iid6, "\n")
+
+vf_fn6 <- function(x) { 2 * sum(acf(x, plot=FALSE)$acf) - 1 }
+vf6 = vf(hlist6[(B6+1):M6])
+se6 = se_iid6 * sqrt(vf6)
+cat("true standard error is about", se6, "\n")
+cat("approximate 95% confidence interval is (", I6 - 1.96 * se6, ",",
+    I6 + 1.96 * se6, ")\n\n")
