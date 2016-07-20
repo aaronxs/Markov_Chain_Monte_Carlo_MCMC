@@ -1,0 +1,83 @@
+#####################  Down and Out Call
+# number of paths factor
+n <- 4
+# duration of option
+T <- 90
+# volatility of stock
+sigma <- 0.2
+# risk free rate
+r <- 0.05
+dt <- 1/360
+# estiamtes of price
+PriceDO <- numeric(n)
+# se of estimates
+seDO <- numeric(n)
+# barrier level
+b1 <- 19
+
+for(i in 1:n){
+  # number of paths
+  N <- 10^(i+2)
+  # storing the payoff of paths generated
+  payoffBar <- numeric(N)
+  for(j in 1:N){
+    X <- numeric(T)
+    # initial price
+    X[1] <- 20
+    dW <- rnorm(T)
+    for(t in 1:(T-1)){
+      X[t + 1] <- X[t] + r*X[t]*dt + sigma*X[t]*dW[t]*sqrt(dt)
+    }
+    if(min(X) > b1){
+      payoffBar[j] <- max(X[T] - 20, 0)    
+    }
+    else
+      payoffBar[j] <- 0
+    if(j %% 1000 == 0){print(j)}
+  }
+  PriceDO[i] <- mean(payoffBar)*exp(-r*T*dt)
+  seDO[i] <- sd(payoffBar)/sqrt(N)
+}
+#####################  Up and In Call
+# number of paths factor
+n <- 4
+# duration of option
+T <- 90
+# volatility of stock
+sigma <- 0.2
+# risk free rate
+r <- 0.05
+dt <- 1/360
+# estiamtes of price
+PriceUI <- numeric(n)
+# se of estimates
+seUI <- numeric(n)
+# barrier level
+b2 <- 22
+
+for(i in 1:n){
+  # number of paths
+  N <- 10^(i+2)
+  # storing the payoff of paths generated
+  payoffBar <- numeric(N)
+  for(j in 1:N){
+    X <- numeric(T)
+    # initial price
+    X[1] <- 20
+    dW <- rnorm(T)
+    for(t in 1:(T-1)){
+      X[t + 1] <- X[t] + r*X[t]*dt + sigma*X[t]*dW[t]*sqrt(dt)
+    }
+    if(max(X) > b2){
+      payoffBar[j] <- max(X[T] - 20, 0)    
+    }
+    else
+      payoffBar[j] <- 0
+    if(j %% 1000 == 0){print(j)}
+  }
+  PriceUI[i] <- mean(payoffBar)*exp(-r*T*dt)
+  seUI[i] <- sd(payoffBar)/sqrt(N)
+}
+# summarizing the result
+Bar <- cbind(size, round(PriceDO,6), round(seDO,6), round(PriceUI,6), round(seUI,6))
+colnames(Bar) <- c("N", "Down & Out Call", "Std Error", "Up & In Call", "Std Error")
