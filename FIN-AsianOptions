@@ -1,0 +1,71 @@
+#####################  Average Rate Call
+# number of paths factor
+n <- 4
+# duration of option
+T <- 90
+# volatility of stock
+sigma <- 0.2
+# risk free rate
+r <- 0.05
+dt <- 1/360
+# estiamtes of price
+PriceAR <- numeric(n)
+# se of estimates
+seAR<- numeric(n)
+
+for(i in 1:n){
+  # number of paths
+  N <- 10^(i+2)
+  # storing the payoff of paths generated
+  payoffA <- numeric(N)
+  for(j in 1:N){
+    X <- numeric(T)
+    # initial price
+    X[1] <- 20
+    dW <- rnorm(T)
+    for(t in 1:(T-1)){
+      X[t + 1] <- X[t] + r*X[t]*dt + sigma*X[t]*dW[t]*sqrt(dt)
+    }
+    payoffA[j] <- max(mean(X) - 20, 0)    
+    if(j %% 1000 == 0){print(j)}
+  }
+  PriceAR[i] <- mean(payoffA)*exp(-r*T*dt)
+  seAR[i] <- sd(payoffA)/sqrt(N)
+}
+#####################  Average Strike Call
+# number of paths factor
+n <- 4
+# duration of option
+T <- 90
+# volatility of stock
+sigma <- 0.2
+# risk free rate
+r <- 0.05
+dt <- 1/360
+# estiamtes of price
+PriceAK <- numeric(n)
+# se of estimates
+seAK <- numeric(n)
+
+for(i in 1:n){
+  # number of paths
+  N <- 10^(i+2)
+  # storing the payoff of paths generated
+  payoffA <- numeric(N)
+  for(j in 1:N){
+    X <- numeric(T)
+    # initial price
+    X[1] <- 20
+    dW <- rnorm(T)
+    for(t in 1:(T-1)){
+      X[t + 1] <- X[t] + r*X[t]*dt + sigma*X[t]*dW[t]*sqrt(dt)
+    }
+    payoffA[j] <- max(X[T] - mean(X), 0)    
+    if(j %% 1000 == 0){print(j)}
+  }
+  PriceAK[i] <- mean(payoffA)*exp(-r*T*dt)
+  seAK[i] <- sd(payoffA)/sqrt(N)
+}
+# summarizing the result
+Asian <- cbind(size, round(PriceAR,6), round(seAR,6), round(PriceAK,6), round(seAK,6))
+colnames(Asian) <- c("N", "Average Rate Call", "Std Error", "Average Strike Call", "Std Error")
