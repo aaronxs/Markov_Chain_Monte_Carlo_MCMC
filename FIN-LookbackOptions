@@ -1,0 +1,63 @@
+#####################  Lookback Float Call
+# number of paths factor
+n <- 4
+# duration of option
+T <- 90
+# volatility of stock
+sigma <- 0.2
+# risk free rate
+r <- 0.05
+dt <- 1/360
+# estiamtes of price
+PriceLFC <- numeric(n)
+# se of estimates
+seLFC <- numeric(n)
+
+for(i in 1:n){
+  # number of paths
+  N <- 10^(i+2)
+  # storing the payoff of paths generated
+  payoffLB <- numeric(N)
+  for(j in 1:N){
+    X <- numeric(T)
+    # initial price
+    X[1] <- 20
+    dW <- rnorm(T)
+    for(t in 1:(T-1)){
+      X[t + 1] <- X[t] + r*X[t]*dt + sigma*X[t]*dW[t]*sqrt(dt)
+    }
+    payoffLB[j] <- max(X[T] - min(X), 0)
+    if(j %% 100 == 0){print(j)}
+  }
+  PriceLFC[i] <- mean(payoffLB)*exp(-r*T*dt)
+  seLFC[i] <- sd(payoffLB)/sqrt(N)
+}
+
+#####################  Lookback Float Put
+# estiamtes of price
+PriceLFP <- numeric(n)
+# se of estimates
+seLFP <- numeric(n)
+
+for(i in 1:n){
+  # number of paths
+  N <- 10^(i+2)
+  # storing the payoff of paths generated
+  payoffLB <- numeric(N)
+  for(j in 1:N){
+    X <- numeric(T)
+    # initial price
+    X[1] <- 20
+    dW <- rnorm(T)
+    for(t in 1:(T-1)){
+      X[t + 1] <- X[t] + r*X[t]*dt + sigma*X[t]*dW[t]*sqrt(dt)
+    }
+    payoffLB[j] <- max(max(X) - X[T], 0)
+    if(j %% 1000 == 0){print(j)}
+  }
+  PriceLFP[i] <- mean(payoffLB)*exp(-r*T*dt)
+  seLFP[i] <- sd(payoffLB)/sqrt(N)
+}
+# summarizing the result
+LB <- cbind(size, round(PriceLFC,6), round(seLFC,6), round(PriceLFP,6), round(seLFP,6))
+colnames(LB) <- c("N", "Float Strike Call", "Std Error", "Float Strike Put", "Std Error")
