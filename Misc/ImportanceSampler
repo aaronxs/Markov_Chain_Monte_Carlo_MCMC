@@ -1,0 +1,35 @@
+# Importance Sampler
+A <- 4; B <- 1; C <- 1; D <- 9
+
+# Question 4
+# function g
+gn4 <- function (x,y,z,u,v){
+  (x + A + 2)^(y +3)*(1 + cos((B+3)*z))*(exp((12-C)*u))*abs(u - 3*v)^(D+2)
+}
+#function h
+hn4 <- function(x, y, z, u, v){
+  (x - y)/(1 + z + u*v)
+}
+# function h times g
+hgn4 <- function(x, y, z, u, v){
+  hn4(x, y, z, u, v)*gn4(x, y, z, u, v)
+}
+# number of iterations per run
+M4 <- 1000000
+# number of runs
+n4 <- 1
+# list containing the estimate of runs
+Ilist4 <- numeric(n4)
+for(i in 1:n4){
+  # generating iid samples
+  x1list4 <- runif(M4, min=0, max=2)
+  x2list4 <- runif(M4, min=0, max=2)
+  x3list4 <- runif(M4, min=0, max=2)
+  x4list4 <- runif(M4, min=0, max=2)
+  x5list4 <- runif(M4, min=0, max=2)
+  # final answer
+  Ilist4[i] <- mean(hgn4(x1list4,x2list4,x3list4,x4list4,x5list4))/mean(gn4(x1list4,x2list4,x3list4,x4list4,x5list4))
+  print(i)
+}
+
+
