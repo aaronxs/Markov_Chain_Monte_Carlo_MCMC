@@ -1,0 +1,40 @@
+# Rejection Sampler
+A <- 4; B <- 1; C <- 1; D <- 9  #deifining A, B, C,and D
+K <- (2^12)*(8^5)*exp(22)  #bounding conditon Kf(x)
+
+# function g
+gn4 <- function (x, y, z, u, v){
+  (x + A + 2)^(y +3)*(1 + cos((B+3)*z))*(exp((12-C)*u))*abs(u - 3*v)^(D+2)
+}
+# function h
+hn4 <- function(x, y, z, u, v){
+  (x - y)/(1 + z + u*v)
+}
+
+M5 <- 100000 # Number of iterations
+n5 <- 200 # number of independent runs
+# list of of estimates
+Ilist5 <- numeric(n5)
+# number of accepted values for each run
+acceptCount5 <- numeric(n5)
+
+for(i in 1:n5){
+  # list containing samples
+  hlist5 <- numeric(M5)
+  # iid samples from 5D uniform(0,2)
+  x1list5 <- runif(M5, min=0, max=2)
+  x2list5 <- runif(M5, min=0, max=2)
+  x3list5 <- runif(M5, min=0, max=2)
+  x4list5 <- runif(M5, min=0, max=2)
+  x5list5 <- runif(M5, min=0, max=2)
+  # uniform(0,1) values to compare
+  U <- runif(M5, min=0, max=1)
+  for(j in 1:M5){ 
+    ratio <- gn4(x1list5[i], x2list5[i], x3list5[i], x4list5[i], x5list5[i])/K
+    if(U[j] <= ratio){
+      hlist5[j] = hn4(x1list5[i], x2list5[i], x3list5[i], x4list5[i], x5list5[i])}
+      acceptCount5[i] = acceptCount5[i] + 1
+  }
+  Ilist5[i] <- mean(hlist5) 
+  print(i)
+}
