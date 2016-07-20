@@ -1,0 +1,58 @@
+# Random Walk Metropolis
+# function g
+gn8 <- function(x){
+  exp(-abs(x)/10)*(1 + cos(x)*sin(x^3))
+}
+
+# function h
+hn8 <- function(x){x + x^2}
+
+# number of iterations
+M8 <- 110000
+# number of burn-in
+B8 <- 10000
+# number of indep runs
+n8 <- 200
+# scaling factor
+sigma <- 55
+
+# # count numer of accepted proposal
+acceptcount8a <- numeric(n8)
+# storing estimates frome each run
+Ilist8a <- numeric(n8)
+
+for(i in 1:n8){
+  # a list to store the h values
+  hlist8a <- numeric(M8)
+  # initial value
+  X <- runif(1, min=-10, max=10)
+  for(j in 1:M8){
+    U <- runif(1, min=0, max=1)
+    Y <- rnorm(1, mean=X, sd=sigma)
+    ratio <- gn8(Y)/gn8(X)
+    if(U <= ratio){
+      X = Y
+      hlist8a[j] = hn8(X)
+      acceptcount8a[i] = acceptcount8a[i] + 1
+    }
+  }
+  Ilist8a[i] <- mean(hlist8a[(B8+1):M8]) # list of estimates
+  print(i)
+}
+
+print(Ilist8a)
+print(acceptcount8a/M8)
+cat("ran Metropolis algorithm for", M8, "iterations, with burn-in", B8, "\n");
+cat("acceptance rate =", acceptcount8a/M8, "\n");
+I8a <- mean(hlist8a[(B8+1):M8]) # estimate of I
+cat("mean of h is about", I8a, "\n")
+
+se_iid8a =  sd(hlist8a[(B8+1):M8]) / sqrt(M8-B8)
+cat("iid standard error would be about", se_iid8a, "\n")
+
+vf_fn8a <- function(x) { 2 * sum(acf(x, plot=FALSE)$acf) - 1 }
+vf8a = vf_fn8a(hlist8a[(B8+1):M8])
+se8a = se_iid8a * sqrt(vf8a)
+cat("true standard error is about", se8a, "\n")
+cat("approximate 95% confidence interval is (", I8a - 1.96 * se8a, ",",
+    I8a + 1.96 * se8a, ")\n\n")
