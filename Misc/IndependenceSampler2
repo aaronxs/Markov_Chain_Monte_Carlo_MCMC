@@ -1,0 +1,70 @@
+# Independence Sampler 2
+r7b <- 10
+
+# function pi
+pi_fn7 <- function(x){5*x*(-6)}
+
+#function q
+q_fn7 <- function(x, r){r*x^(-r-1)}
+
+# inverse of cdf of pareto(r,1)
+q_inv_fn7 <- function(y, r){1/(1-y)^(1/r)}
+
+# var fact function
+vf <- function(x) { 2 * sum(acf(x, plot=FALSE)$acf) - 1 }
+
+# number of iterations
+M7 <- 10^5
+
+# number of burn-ins
+B7 <- 10^4
+
+# number of independet runs
+n7 <- 200
+# list of estimates from runs
+Ilist7b <- numeric(n7)
+seVF7b <- numeric(n7)
+
+for(i in 1:n7){
+  # list of samples
+  xlist7b <- numeric(M7)
+  # initial value
+  X <- q_inv_fn7(runif(1, min=0, max=1), r7b)
+  # list of proposed values
+  ylist7b <- q_inv_fn7(runif(M7, min=0, max=1), r7b)
+  # list of uniform values
+  ulist7b = runif(M7, min=0, max=1);
+  for (j in 1:M7) {
+    Y <- ylist7b[j]
+    U <- ulist7b[j]
+    ratio = (X/Y)^(-r7b - 1 + 6);
+    if (U < ratio) {
+      X = Y;
+      xlist7b[j] <- X
+    }
+  }
+  Ilist7b[i] <- mean(xlist7b[(B7+1):M7])
+  seVF7b[i] <- sd(xlist7b[(B7+1):M7])*sqrt(vf(xlist7b[(B7+1):M7]))/sqrt(M7 - B7)
+  print(i)
+}
+# estimate and se of the runs
+IInd7b <- mean(Ilist7b)
+seInd7b <- sd(Ilist7b)/sqrt(n7)
+
+# # initial value generated from inverse of cdf of pi
+# X <- q_inv_fn7(runif(1, min=0, max=1), 5)
+# xlist7b1 <- numeric(M7)
+# ylist7b <- q_inv_fn7(runif(M7, min=0, max=1), r7b)
+# ulist7b = runif(M7, min=0, max=1);
+# for (j in 1:M7) {
+#   Y <- ylist7b[j]
+#   U <- ulist7b[j]
+#   ratio = (X/Y)^(-r7b - 1 + 6);
+#   if (U < ratio) {
+#     X = Y;
+#     xlist7b1[j] <- X
+#   }
+# }
+# # estimate and se
+# I7b <- mean(xlist7b1[(B7+1):M7])
+# seVF7b <- sd(xlist7b1[(B7+1):M7])/sqrt(M7-B7)*sqrt(vf(xlist7b1[(B7+1):M7]))
