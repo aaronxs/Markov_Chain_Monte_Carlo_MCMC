@@ -1,5 +1,4 @@
-#########################  Question 9   #########################
-#### part a
+#Random Walke Metropolis Algorithm
 # defining prior parameters
 P9a = 100
 K <- 6
